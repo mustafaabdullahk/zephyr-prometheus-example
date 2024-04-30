@@ -7,73 +7,41 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 
-#include <app/drivers/blink.h>
-
 #include <app_version.h>
+
+#include <prometheus/pm_exposer.h>
+#include <prometheus/pm_collector.h>
+#include <prometheus/pm_counter.h>
+#include <prometheus/pm_gauge.h>
+#include <prometheus/pm_histogram.h>
+#include <prometheus/pm_summary.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
-#define BLINK_PERIOD_MS_STEP 100U
-#define BLINK_PERIOD_MS_MAX  1000U
+#define PORT         8080
+#define METRICS_PATH "/metrics"
 
 int main(void)
 {
-	int ret;
-	unsigned int period_ms = BLINK_PERIOD_MS_MAX;
-	const struct device *sensor, *blink;
-	struct sensor_value last_val = { 0 }, val;
 
 	printk("Zephyr Example Application %s\n", APP_VERSION_STRING);
 
-	sensor = DEVICE_DT_GET(DT_NODELABEL(example_sensor));
-	if (!device_is_ready(sensor)) {
-		LOG_ERR("Sensor not ready");
-		return 0;
-	}
+	// Create a mock collector with different types of metrics
+	pm_collector_t *collector = pm_collector_create();
 
-	blink = DEVICE_DT_GET(DT_NODELABEL(blink_led));
-	if (!device_is_ready(blink)) {
-		LOG_ERR("Blink LED not ready");
-		return 0;
-	}
+	pm_label_t labels[] = {{"label1", "value1"}, {"label2", "value2"}};
+	pm_counter_t *counter = pm_counter_create("test_counter", "Test counter", labels, 2);
+	pm_counter_inc(counter);
 
-	ret = blink_off(blink);
-	if (ret < 0) {
-		LOG_ERR("Could not turn off LED (%d)", ret);
-		return 0;
-	}
+	pm_collector_register_metric(collector, (pm_metric_t *)counter);
 
-	printk("Use the sensor to change LED blinking period\n");
+	// TO DO: Add more metrics to the collector and test them
 
-	while (1) {
-		ret = sensor_sample_fetch(sensor);
-		if (ret < 0) {
-			LOG_ERR("Could not fetch sample (%d)", ret);
-			return 0;
-		}
-
-		ret = sensor_channel_get(sensor, SENSOR_CHAN_PROX, &val);
-		if (ret < 0) {
-			LOG_ERR("Could not get sample (%d)", ret);
-			return 0;
-		}
-
-		if ((last_val.val1 == 0) && (val.val1 == 1)) {
-			if (period_ms == 0U) {
-				period_ms = BLINK_PERIOD_MS_MAX;
-			} else {
-				period_ms -= BLINK_PERIOD_MS_STEP;
-			}
-
-			printk("Proximity detected, setting LED period to %u ms\n",
-			       period_ms);
-			blink_set_period_ms(blink, period_ms);
-		}
-
-		last_val = val;
-
-		k_sleep(K_MSEC(100));
-	}
+	pm_exposer_start(PORT, METRICS_PATH, collector);
 
 	return 0;
 }
