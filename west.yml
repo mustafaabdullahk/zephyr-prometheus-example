@@ -8,6 +8,8 @@ manifest:
   remotes:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
+    - name: zephyrus
+      url-base: https://github.com/mustafaabdullahk/zephyrus
 
   projects:
     - name: zephyr
@@ -20,3 +22,11 @@ manifest:
           - cmsis      # required by the ARM port
           - hal_nordic # required by the custom_plank board (Nordic based)
           - hal_stm32  # required by the nucleo_f302r8 board (STM32 based)
+          - mbedtls
+
+    - name: prometheus
+      remote: zephyrus # referred from remotes can change other forks or main
+      submodules: true # prometheus add as submodule
+      revision: main # can select different branch
+      repo-path: .
+      path: modules/lib/prometheus
