@@ -1,4 +1,4 @@
-# Zephyr Example Application
+# Zephyr Prometheus Example Application
  
 <a href="https://zephyrproject-rtos.github.io/example-application">
   <img alt="Documentation" src="https://img.shields.io/badge/documentation-3D578C?logo=sphinx&logoColor=white">
@@ -7,7 +7,7 @@
   <img alt="API Documentation" src="https://img.shields.io/badge/API-documentation-3D578C?logo=c&logoColor=white">
 </a>
 
-This repository contains a Zephyr example application. The main purpose of this
+This repository contains a Zephyr Prometheus example application. The main purpose of this
 repository is to serve as a reference on how to structure Zephyr-based
 applications. Some of the features demonstrated in this example are:
 
@@ -22,6 +22,7 @@ applications. Some of the features demonstrated in this example are:
 - Example CI configuration (using GitHub Actions)
 - Custom [west extension][west_ext]
 - Doxygen and Sphinx documentation boilerplate
+- Zephyr [prometheus client library][prometheus_library]
 
 This repository is versioned together with the [Zephyr main tree][zephyr]. This
 means that every time that Zephyr is tagged, this repository is tagged as well
@@ -39,6 +40,7 @@ points to the development branch of Zephyr, also `main`.
 [drivers]: https://docs.zephyrproject.org/latest/reference/drivers/index.html
 [zephyr]: https://github.com/zephyrproject-rtos/zephyr
 [west_ext]: https://docs.zephyrproject.org/latest/develop/west/extensions.html
+[prometheus_library]: https://github.com/mustafaabdullahk/zephyrus/
 
 ## Getting Started
 
@@ -59,6 +61,12 @@ west init -m https://github.com/zephyrproject-rtos/example-application --mr main
 cd my-workspace
 west update
 ```
+
+### Tested boards
+
+|boards|status|
+|--------------|------|
+|stm32h747disco|OK|
 
 ### Building and running
 
@@ -86,6 +94,33 @@ Once you have built the application, run the following command to flash it:
 
 ```shell
 west flash
+```
+
+example output:
+
+```bash
+*** Booting Zephyr OS build v3.6.0-3205-g950382cb1717 ***
+[00:00:00.001,000] <inf> net_config: Initializing network
+[00:00:00.001,000] <inf> net_config: Waiting interface 1 (0x240010f0) to be up...
+Prometheus exposer listening on port 8080
+[00:00:01.686,000] <inf> net_config: Interface 1 (0x240010f0) coming up
+[00:00:01.686,000] <inf> net_config: Running dhcpv4 client...
+Zephyr Example Application 1.0.0
+[00:00:04.688,000] <inf> net_dhcpv4: Received: 10.5.194.51
+[00:00:04.688,000] <inf> net_config: IPv4 address: 10.5.194.51
+[00:00:04.688,000] <inf> net_config: Lease time: 258944 seconds
+[00:00:04.688,000] <inf> net_config: Subnet: 255.255.0.0
+[00:00:04.688,000] <inf> net_config: Router: 10.5.0.1
+Handling connection
+metric->name: test_counter
+metric->type: 0
+counter->value: 1
+counter->num_labels: 2
+Handling connection
+metric->name: test_counter
+metric->type: 0
+counter->value: 1
+counter->num_labels: 2
 ```
 
 ### Testing
